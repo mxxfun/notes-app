@@ -1,5 +1,6 @@
 import './index.css'
 import { PlusIcon } from "lucide-react"
+import { useState, useEffect } from 'react'
 
 const TaskItem = ({ task }) => (
   <li className="mb-2">
@@ -27,12 +28,33 @@ const TaskSection = ({ title, tasks }) => (
 )
 
 export default function Homepage() {
+  const [currentDate, setCurrentDate] = useState(new Date())
   const tasks = {
     heute: ["Projekt-Präsentation vorbereiten", "E-Mails beantworten"],
     morgen: ["Team-Meeting", "Bericht fertigstellen"],
     dieseWoche: ["Kundengespräch vorbereiten", "Neue Software testen"],
     dieserMonat: ["Quartalsplanung erstellen", "Fortbildung planen"],
     alle: ["Langzeitprojekt strukturieren", "Urlaubsplanung"]
+  }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDate(new Date())
+    }, 1000 * 60) // Update every minute
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    return new Date(year, month + 1, 0).getDate()
+  }
+
+  const getFirstDayOfMonth = (date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    return new Date(year, month, 1).getDay()
   }
 
   return (
@@ -66,11 +88,14 @@ export default function Homepage() {
                     {day}
                   </div>
                 ))}
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                {Array.from({ length: getFirstDayOfMonth(currentDate) - 1 }, (_, i) => (
+                  <div key={`empty-${i}`} className="p-1"></div>
+                ))}
+                {Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => i + 1).map((day) => (
                   <button
                     key={day}
                     className={`rounded-full p-1 text-sm ${
-                      day === 15 ? 'bg-orange-500 text-white' : 'hover:bg-gray-100'
+                      day === currentDate.getDate() ? 'bg-orange-500 text-white' : 'hover:bg-gray-100'
                     }`}
                   >
                     {day}
