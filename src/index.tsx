@@ -1,9 +1,14 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './homepage'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import Homepage from "./homepage";
+import NoteContextMenu from "./note-context-menu";
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+const showHomepage = true;
+const showContextMenu = false;
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>
-)
+    {showHomepage && <Homepage />}
+    {showContextMenu && <NoteContextMenu />}
+  </React.StrictMode>,
+);
