@@ -1,4 +1,4 @@
-import './index.css'
+import './index.postcss'
 import { PlusIcon } from "lucide-react"
 import { useState, useEffect } from 'react'
 
