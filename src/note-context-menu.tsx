@@ -6,16 +6,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
+import { PrioritySlider } from "@/components/priority-slider"
 
 export default function NoteContextMenu() {
-  const [importance, setImportance] = useState(50)
   const [deadline, setDeadline] = useState("heute")
   const [date, setDate] = useState<Date | undefined>(new Date())
-
-  const getSliderColor = (value: number) => {
-    const hue = 120 - value * 1.2 // This will transition from green (120) to orange (0)
-    return `hsl(${hue}, 100%, 50%)`
-  }
 
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
@@ -32,45 +27,7 @@ export default function NoteContextMenu() {
 
         <div>
           <Label>Wichtigkeit</Label>
-          <div className="relative mt-2">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={importance}
-              onChange={(e) => setImportance(parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, ${getSliderColor(0)} 0%, ${getSliderColor(50)} 50%, ${getSliderColor(100)} 100%)`,
-              }}
-            />
-            <style jsx>{`
-              input[type="range"]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: ${getSliderColor(importance)};
-                cursor: pointer;
-                border: 2px solid white;
-                box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-              }
-              input[type="range"]::-moz-range-thumb {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: ${getSliderColor(importance)};
-                cursor: pointer;
-                border: 2px solid white;
-                box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-              }
-            `}</style>
-            <div className="absolute -top-6 left-0 right-0 flex justify-between text-xs text-gray-500">
-              <span>Niedrige Priorität</span>
-              <span>Hohe Priorität</span>
-            </div>
-          </div>
+          <PrioritySlider />
         </div>
 
         <div>
