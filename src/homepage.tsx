@@ -101,25 +101,52 @@ export default function Homepage() {
 
   const categorizeNotes = () => {
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
     const nextWeek = new Date(today)
     nextWeek.setDate(nextWeek.getDate() + 7)
+    const nextMonth = new Date(today)
+    nextMonth.setMonth(nextMonth.getMonth() + 1)
 
-    return {
-      heute: notes.filter(note => !note.completed && new Date(note.deadline).toDateString() === today.toDateString()),
-      morgen: notes.filter(note => !note.completed && new Date(note.deadline).toDateString() === tomorrow.toDateString()),
-      dieseWoche: notes.filter(note => {
-        const noteDate = new Date(note.deadline)
-        return !note.completed && noteDate > tomorrow && noteDate <= nextWeek
-      }),
-      dieserMonat: notes.filter(note => {
-        const noteDate = new Date(note.deadline)
-        return !note.completed && noteDate > nextWeek && noteDate.getMonth() === today.getMonth()
-      }),
-      alle: notes.filter(note => !note.completed),
-      erledigt: notes.filter(note => note.completed)
+    const categories = {
+      ueberfaellig: [] as Note[],
+      heute: [] as Note[],
+      morgen: [] as Note[],
+      dieseWoche: [] as Note[],
+      dieserMonat: [] as Note[],
+      alle: [] as Note[],
+      erledigt: [] as Note[]
     }
+
+    notes.forEach(note => {
+      const noteDate = new Date(note.deadline)
+      noteDate.setHours(0, 0, 0, 0)
+
+      if (note.completed) {
+        categories.erledigt.push(note)
+      } else {
+        categories.alle.push(note)
+
+        if (noteDate < today) {
+          categories.ueberfaellig.push(note)
+        }
+        if (noteDate.getTime() === today.getTime()) {
+          categories.heute.push(note)
+        }
+        if (noteDate.getTime() === tomorrow.getTime()) {
+          categories.morgen.push(note)
+        }
+        if (noteDate > today && noteDate <= nextWeek) {
+          categories.dieseWoche.push(note)
+        }
+        if (noteDate > today && noteDate < nextMonth) {
+          categories.dieserMonat.push(note)
+        }
+      }
+    })
+
+    return categories
   }
 
   const categorizedNotes = categorizeNotes()
@@ -139,6 +166,7 @@ export default function Homepage() {
               <PlusIcon className="mr-2 h-5 w-5 text-gray-400" />
               <span className="text-gray-700">Neue Notiz</span>
             </div>
+            <TaskSection title="Überfällig" notes={categorizedNotes.ueberfaellig} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
             <TaskSection title="Heute" notes={categorizedNotes.heute} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
             <TaskSection title="Morgen" notes={categorizedNotes.morgen} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
             <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />

@@ -55,7 +55,7 @@ export default function NoteContextMenu({
       title,
       content,
       priority,
-      deadline: deadline === "manuell" && date ? date.toISOString() : deadline,
+      deadline: date ? date.toISOString() : new Date().toISOString(),
       completed,
     };
 
@@ -72,6 +72,30 @@ export default function NoteContextMenu({
       deleteNote(initialNote.id);
       onClose();
     }
+  };
+
+  const handleDeadlineChange = (value: string) => {
+    setDeadline(value);
+    let newDate = new Date();
+
+    switch (value) {
+      case "heute":
+        newDate = new Date();
+        break;
+      case "morgen":
+        newDate = new Date();
+        newDate.setDate(newDate.getDate() + 1);
+        break;
+      case "diese-woche":
+        newDate = new Date();
+        newDate.setDate(newDate.getDate() + (7 - newDate.getDay()));
+        break;
+      case "manuell":
+        // Keep the current date
+        break;
+    }
+
+    setDate(newDate);
   };
 
   return (
@@ -120,7 +144,7 @@ export default function NoteContextMenu({
           <Label className="block mb-2">Deadline</Label>
           <RadioGroup
             value={deadline}
-            onValueChange={setDeadline}
+            onValueChange={handleDeadlineChange}
             className="flex flex-wrap gap-4"
           >
             <div className="flex items-center space-x-2">
@@ -145,7 +169,7 @@ export default function NoteContextMenu({
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={(newDate) => setDate(newDate || new Date())}
                 className="rounded-md border"
                 classNames={{
                   day_selected:
