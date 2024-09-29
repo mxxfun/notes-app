@@ -4,28 +4,40 @@ import { useState, useEffect } from 'react'
 import NoteContextMenu from './note-context-menu'
 import { useNotes } from './NoteContext'
 
-const TaskItem = ({ task, completed }) => (
+interface Note {
+  id: string;
+  title: string;
+  content: string;
+  priority: number;
+  deadline: string;
+  completed: boolean;
+}
+
+const TaskItem = ({ note, onNoteClick }: { note: Note; onNoteClick: (note: Note) => void }) => (
   <li className="mb-2">
-    <div className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group">
+    <div 
+      className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group cursor-pointer"
+      onClick={() => onNoteClick(note)}
+    >
       <div className="flex-shrink-0 w-5 h-5 mr-3">
         <input 
           type="checkbox" 
-          checked={completed}
+          checked={note.completed}
           className="w-5 h-5 rounded-full border-2 border-gray-300 text-orange-500 focus:ring-orange-500 focus:ring-offset-0 transition-colors duration-300 group-hover:border-white"
-          readOnly
+          onChange={(e) => e.stopPropagation()}
         />
       </div>
-      <span className="text-gray-700 group-hover:text-white transition-colors duration-300">{task}</span>
+      <span className="text-gray-700 group-hover:text-white transition-colors duration-300">{note.title}</span>
     </div>
   </li>
 )
 
-const TaskSection = ({ title, notes }) => (
+const TaskSection = ({ title, notes, onNoteClick }: { title: string; notes: Note[]; onNoteClick: (note: Note) => void }) => (
   <section className="mb-6">
     <h2 className="mb-2 text-lg font-semibold text-gray-700">{title}</h2>
     <ul>
       {notes.map((note) => (
-        <TaskItem key={note.id} task={note.title} completed={note.completed} />
+        <TaskItem key={note.id} note={note} onNoteClick={onNoteClick} />
       ))}
     </ul>
   </section>
@@ -34,6 +46,7 @@ const TaskSection = ({ title, notes }) => (
 export default function Homepage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const { notes } = useNotes()
 
   useEffect(() => {
@@ -44,13 +57,23 @@ export default function Homepage() {
     return () => clearInterval(timer)
   }, [])
 
-  const getDaysInMonth = (date) => {
+  const handleNoteClick = (note: Note) => {
+    setSelectedNote(note)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedNote(null)
+  }
+
+  const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
     return new Date(year, month + 1, 0).getDate()
   }
 
-  const getFirstDayOfMonth = (date) => {
+  const getFirstDayOfMonth = (date: Date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
     return new Date(year, month, 1).getDay()
@@ -95,11 +118,11 @@ export default function Homepage() {
               <PlusIcon className="mr-2 h-5 w-5 text-gray-400" />
               <span className="text-gray-700">Neue Notiz</span>
             </div>
-            <TaskSection title="Heute" notes={categorizedNotes.heute} />
-            <TaskSection title="Morgen" notes={categorizedNotes.morgen} />
-            <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} />
-            <TaskSection title="Dieser Monat" notes={categorizedNotes.dieserMonat} />
-            <TaskSection title="Alle" notes={categorizedNotes.alle} />
+            <TaskSection title="Heute" notes={categorizedNotes.heute} onNoteClick={handleNoteClick} />
+            <TaskSection title="Morgen" notes={categorizedNotes.morgen} onNoteClick={handleNoteClick} />
+            <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} onNoteClick={handleNoteClick} />
+            <TaskSection title="Dieser Monat" notes={categorizedNotes.dieserMonat} onNoteClick={handleNoteClick} />
+            <TaskSection title="Alle" notes={categorizedNotes.alle} onNoteClick={handleNoteClick} />
           </div>
           <div className="w-64 flex-shrink-0">
             <div className="rounded-lg border border-gray-200 p-4">
@@ -131,7 +154,7 @@ export default function Homepage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-lg">
-            <NoteContextMenu onClose={() => setIsModalOpen(false)} />
+            <NoteContextMenu onClose={handleCloseModal} initialNote={selectedNote} />
           </div>
         </div>
       )}

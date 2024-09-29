@@ -12,7 +12,8 @@ interface Note {
 interface NoteContextType {
   notes: Note[];
   addNote: (note: Omit<Note, 'id'>) => void;
-  // Weitere Funktionen wie updateNote, deleteNote, etc. können hier hinzugefügt werden
+  updateNote: (id: string, note: Partial<Note>) => void;
+  deleteNote: (id: string) => void;
 }
 
 const NoteContext = createContext<NoteContextType | undefined>(undefined);
@@ -25,8 +26,20 @@ export const NoteProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setNotes(prevNotes => [...prevNotes, newNote]);
   };
 
+  const updateNote = (id: string, updatedNote: Partial<Note>) => {
+    setNotes(prevNotes =>
+      prevNotes.map(note =>
+        note.id === id ? { ...note, ...updatedNote } : note
+      )
+    );
+  };
+
+  const deleteNote = (id: string) => {
+    setNotes(prevNotes => prevNotes.filter(note => note.id !== id));
+  };
+
   return (
-    <NoteContext.Provider value={{ notes, addNote }}>
+    <NoteContext.Provider value={{ notes, addNote, updateNote, deleteNote }}>
       {children}
     </NoteContext.Provider>
   );
