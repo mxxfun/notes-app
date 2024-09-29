@@ -2,14 +2,17 @@ import './index.postcss'
 import { PlusIcon } from "lucide-react"
 import { useState, useEffect } from 'react'
 import NoteContextMenu from './note-context-menu'
+import { useNotes } from './NoteContext'
 
-const TaskItem = ({ task }) => (
+const TaskItem = ({ task, completed }) => (
   <li className="mb-2">
     <div className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group">
       <div className="flex-shrink-0 w-5 h-5 mr-3">
         <input 
           type="checkbox" 
+          checked={completed}
           className="w-5 h-5 rounded-full border-2 border-gray-300 text-orange-500 focus:ring-orange-500 focus:ring-offset-0 transition-colors duration-300 group-hover:border-white"
+          readOnly
         />
       </div>
       <span className="text-gray-700 group-hover:text-white transition-colors duration-300">{task}</span>
@@ -17,12 +20,12 @@ const TaskItem = ({ task }) => (
   </li>
 )
 
-const TaskSection = ({ title, tasks }) => (
+const TaskSection = ({ title, notes }) => (
   <section className="mb-6">
     <h2 className="mb-2 text-lg font-semibold text-gray-700">{title}</h2>
     <ul>
-      {tasks.map((task, index) => (
-        <TaskItem key={index} task={task} />
+      {notes.map((note) => (
+        <TaskItem key={note.id} task={note.title} completed={note.completed} />
       ))}
     </ul>
   </section>
@@ -31,13 +34,7 @@ const TaskSection = ({ title, tasks }) => (
 export default function Homepage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const tasks = {
-    heute: ["Projekt-Präsentation vorbereiten", "E-Mails beantworten"],
-    morgen: ["Team-Meeting", "Bericht fertigstellen"],
-    dieseWoche: ["Kundengespräch vorbereiten", "Neue Software testen"],
-    dieserMonat: ["Quartalsplanung erstellen", "Fortbildung planen"],
-    alle: ["Langzeitprojekt strukturieren", "Urlaubsplanung"]
-  }
+  const { notes } = useNotes()
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -59,6 +56,30 @@ export default function Homepage() {
     return new Date(year, month, 1).getDay()
   }
 
+  const categorizeNotes = () => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const nextWeek = new Date(today)
+    nextWeek.setDate(nextWeek.getDate() + 7)
+
+    return {
+      heute: notes.filter(note => new Date(note.deadline).toDateString() === today.toDateString()),
+      morgen: notes.filter(note => new Date(note.deadline).toDateString() === tomorrow.toDateString()),
+      dieseWoche: notes.filter(note => {
+        const noteDate = new Date(note.deadline)
+        return noteDate > tomorrow && noteDate <= nextWeek
+      }),
+      dieserMonat: notes.filter(note => {
+        const noteDate = new Date(note.deadline)
+        return noteDate > nextWeek && noteDate.getMonth() === today.getMonth()
+      }),
+      alle: notes
+    }
+  }
+
+  const categorizedNotes = categorizeNotes()
+
   return (
     <div className="min-h-screen bg-white p-8 relative">
       <div className="mx-auto max-w-6xl">
@@ -74,11 +95,11 @@ export default function Homepage() {
               <PlusIcon className="mr-2 h-5 w-5 text-gray-400" />
               <span className="text-gray-700">Neue Notiz</span>
             </div>
-            <TaskSection title="Heute" tasks={tasks.heute} />
-            <TaskSection title="Morgen" tasks={tasks.morgen} />
-            <TaskSection title="Diese Woche" tasks={tasks.dieseWoche} />
-            <TaskSection title="Dieser Monat" tasks={tasks.dieserMonat} />
-            <TaskSection title="Alle" tasks={tasks.alle} />
+            <TaskSection title="Heute" notes={categorizedNotes.heute} />
+            <TaskSection title="Morgen" notes={categorizedNotes.morgen} />
+            <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} />
+            <TaskSection title="Dieser Monat" notes={categorizedNotes.dieserMonat} />
+            <TaskSection title="Alle" notes={categorizedNotes.alle} />
           </div>
           <div className="w-64 flex-shrink-0">
             <div className="rounded-lg border border-gray-200 p-4">

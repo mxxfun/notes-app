@@ -8,14 +8,32 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { PrioritySlider } from "@/components/priority-slider"
 import { X } from "lucide-react"
+import { useNotes } from './NoteContext'
 
 interface NoteContextMenuProps {
   onClose: () => void;
 }
 
 export default function NoteContextMenu({ onClose }: NoteContextMenuProps) {
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [priority, setPriority] = useState(50)
   const [deadline, setDeadline] = useState("heute")
   const [date, setDate] = useState<Date | undefined>(new Date())
+
+  const { addNote } = useNotes()
+
+  const handleSubmit = () => {
+    const newNote = {
+      title,
+      content,
+      priority,
+      deadline: deadline === "manuell" && date ? date.toISOString() : deadline,
+      completed: false
+    }
+    addNote(newNote)
+    onClose()
+  }
 
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg relative">
@@ -29,17 +47,28 @@ export default function NoteContextMenu({ onClose }: NoteContextMenuProps) {
       <div className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="title" className="block mb-1">Titel</Label>
-          <Input id="title" placeholder="Titel eingeben" />
+          <Input 
+            id="title" 
+            placeholder="Titel eingeben" 
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="note" className="block mb-1">Notiz</Label>
-          <Textarea id="note" placeholder="Notiz eingeben" className="h-24" />
+          <Textarea 
+            id="note" 
+            placeholder="Notiz eingeben" 
+            className="h-24"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
         </div>
 
         <div className="space-y-2">
           <Label className="block mb-2">Wichtigkeit</Label>
-          <PrioritySlider />
+          <PrioritySlider value={priority} onChange={setPriority} />
         </div>
 
         <div className="space-y-2">
@@ -83,7 +112,7 @@ export default function NoteContextMenu({ onClose }: NoteContextMenuProps) {
             "w-full bg-white text-black border border-black transition-colors duration-300",
             "hover:bg-black hover:text-white"
           )}
-          onClick={onClose}
+          onClick={handleSubmit}
         >
           Speichern
         </Button>
