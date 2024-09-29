@@ -30,11 +30,12 @@ const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteC
         />
       </div>
       <span className="text-gray-700 group-hover:text-white transition-colors duration-300">{note.title}</span>
+      <span className="ml-auto text-sm text-gray-500 group-hover:text-white">{note.priority}</span>
     </div>
   </li>
 )
 
-const TaskSection = ({ title, notes, onNoteClick, onToggleComplete, defaultCollapsed = false }: { title: string; notes: Note[]; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void; defaultCollapsed?: boolean }) => {
+const TaskSection = ({ title, notes, onNoteClick, onToggleComplete, defaultCollapsed = true }: { title: string; notes: Note[]; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void; defaultCollapsed?: boolean }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   return (
@@ -64,6 +65,7 @@ export default function Homepage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const { notes, updateNote } = useNotes()
+  const [viewMode, setViewMode] = useState<'date' | 'priority'>('date')
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -149,7 +151,12 @@ export default function Homepage() {
     return categories
   }
 
+  const sortNotesByPriority = (notesToSort: Note[]) => {
+    return [...notesToSort].sort((a, b) => b.priority - a.priority);
+  }
+
   const categorizedNotes = categorizeNotes()
+  const prioritySortedNotes = sortNotesByPriority(notes.filter(note => !note.completed))
 
   return (
     <div className="min-h-screen bg-white p-8 relative">
@@ -166,13 +173,44 @@ export default function Homepage() {
               <PlusIcon className="mr-2 h-5 w-5 text-gray-400" />
               <span className="text-gray-700">Neue Notiz</span>
             </div>
-            <TaskSection title="Überfällig" notes={categorizedNotes.ueberfaellig} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
-            <TaskSection title="Heute" notes={categorizedNotes.heute} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
-            <TaskSection title="Morgen" notes={categorizedNotes.morgen} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
-            <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
-            <TaskSection title="Dieser Monat" notes={categorizedNotes.dieserMonat} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
-            <TaskSection title="Alle" notes={categorizedNotes.alle} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
-            <TaskSection title="Done" notes={categorizedNotes.erledigt} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} defaultCollapsed={true} />
+            <div className="mb-6 flex space-x-2">
+              <button
+                className={`px-3 py-1 text-sm rounded-full transition-colors duration-200 ${
+                  viewMode === 'date'
+                    ? 'bg-gray-200 text-gray-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={() => setViewMode('date')}
+              >
+                Datum
+              </button>
+              <button
+                className={`px-3 py-1 text-sm rounded-full transition-colors duration-200 ${
+                  viewMode === 'priority'
+                    ? 'bg-gray-200 text-gray-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={() => setViewMode('priority')}
+              >
+                Priority Score
+              </button>
+            </div>
+            {viewMode === 'date' ? (
+              <>
+                <TaskSection title="Überfällig" notes={categorizedNotes.ueberfaellig} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} defaultCollapsed={false} />
+                <TaskSection title="Heute" notes={categorizedNotes.heute} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} defaultCollapsed={false} />
+                <TaskSection title="Morgen" notes={categorizedNotes.morgen} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+                <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+                <TaskSection title="Dieser Monat" notes={categorizedNotes.dieserMonat} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+                <TaskSection title="Alle" notes={categorizedNotes.alle} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+                <TaskSection title="Erledigt" notes={categorizedNotes.erledigt} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+              </>
+            ) : (
+              <>
+                <TaskSection title="Nach Priorität sortiert" notes={prioritySortedNotes} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} defaultCollapsed={false} />
+                <TaskSection title="Erledigt" notes={categorizedNotes.erledigt} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+              </>
+            )}
           </div>
           <div className="w-64 flex-shrink-0">
             <div className="rounded-lg border border-gray-200 p-4">
