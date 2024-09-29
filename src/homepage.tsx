@@ -1,5 +1,5 @@
 import './index.postcss'
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, ChevronRight, ChevronDown } from "lucide-react"
 import { useState, useEffect } from 'react'
 import NoteContextMenu from './note-context-menu'
 import { useNotes } from './NoteContext'
@@ -13,18 +13,20 @@ interface Note {
   completed: boolean;
 }
 
-const TaskItem = ({ note, onNoteClick }: { note: Note; onNoteClick: (note: Note) => void }) => (
+const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void }) => (
   <li className="mb-2">
     <div 
       className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group cursor-pointer"
       onClick={() => onNoteClick(note)}
     >
-      <div className="flex-shrink-0 w-5 h-5 mr-3">
+      <div className="flex-shrink-0 w-5 h-5 mr-3" onClick={(e) => e.stopPropagation()}>
         <input 
           type="checkbox" 
           checked={note.completed}
           className="w-5 h-5 rounded-full border-2 border-gray-300 text-orange-500 focus:ring-orange-500 focus:ring-offset-0 transition-colors duration-300 group-hover:border-white"
-          onChange={(e) => e.stopPropagation()}
+          onChange={(e) => {
+            onToggleComplete(note.id, e.target.checked);
+          }}
         />
       </div>
       <span className="text-gray-700 group-hover:text-white transition-colors duration-300">{note.title}</span>
@@ -32,22 +34,36 @@ const TaskItem = ({ note, onNoteClick }: { note: Note; onNoteClick: (note: Note)
   </li>
 )
 
-const TaskSection = ({ title, notes, onNoteClick }: { title: string; notes: Note[]; onNoteClick: (note: Note) => void }) => (
-  <section className="mb-6">
-    <h2 className="mb-2 text-lg font-semibold text-gray-700">{title}</h2>
-    <ul>
-      {notes.map((note) => (
-        <TaskItem key={note.id} note={note} onNoteClick={onNoteClick} />
-      ))}
-    </ul>
-  </section>
-)
+const TaskSection = ({ title, notes, onNoteClick, onToggleComplete, defaultCollapsed = false }: { title: string; notes: Note[]; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void; defaultCollapsed?: boolean }) => {
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+
+  return (
+    <section className="mb-6">
+      <h2 
+        className="mb-2 text-lg font-semibold text-gray-700 cursor-pointer flex items-center"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <span className="mr-2">
+          {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </span>
+        {title}
+      </h2>
+      {!isCollapsed && (
+        <ul>
+          {notes.map((note) => (
+            <TaskItem key={note.id} note={note} onNoteClick={onNoteClick} onToggleComplete={onToggleComplete} />
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
 
 export default function Homepage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
-  const { notes } = useNotes()
+  const { notes, updateNote } = useNotes()
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -66,6 +82,10 @@ export default function Homepage() {
     setIsModalOpen(false)
     setSelectedNote(null)
   }
+
+  const handleToggleComplete = (id: string, completed: boolean) => {
+    updateNote(id, { completed });
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
@@ -87,17 +107,18 @@ export default function Homepage() {
     nextWeek.setDate(nextWeek.getDate() + 7)
 
     return {
-      heute: notes.filter(note => new Date(note.deadline).toDateString() === today.toDateString()),
-      morgen: notes.filter(note => new Date(note.deadline).toDateString() === tomorrow.toDateString()),
+      heute: notes.filter(note => !note.completed && new Date(note.deadline).toDateString() === today.toDateString()),
+      morgen: notes.filter(note => !note.completed && new Date(note.deadline).toDateString() === tomorrow.toDateString()),
       dieseWoche: notes.filter(note => {
         const noteDate = new Date(note.deadline)
-        return noteDate > tomorrow && noteDate <= nextWeek
+        return !note.completed && noteDate > tomorrow && noteDate <= nextWeek
       }),
       dieserMonat: notes.filter(note => {
         const noteDate = new Date(note.deadline)
-        return noteDate > nextWeek && noteDate.getMonth() === today.getMonth()
+        return !note.completed && noteDate > nextWeek && noteDate.getMonth() === today.getMonth()
       }),
-      alle: notes
+      alle: notes.filter(note => !note.completed),
+      erledigt: notes.filter(note => note.completed)
     }
   }
 
@@ -118,11 +139,12 @@ export default function Homepage() {
               <PlusIcon className="mr-2 h-5 w-5 text-gray-400" />
               <span className="text-gray-700">Neue Notiz</span>
             </div>
-            <TaskSection title="Heute" notes={categorizedNotes.heute} onNoteClick={handleNoteClick} />
-            <TaskSection title="Morgen" notes={categorizedNotes.morgen} onNoteClick={handleNoteClick} />
-            <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} onNoteClick={handleNoteClick} />
-            <TaskSection title="Dieser Monat" notes={categorizedNotes.dieserMonat} onNoteClick={handleNoteClick} />
-            <TaskSection title="Alle" notes={categorizedNotes.alle} onNoteClick={handleNoteClick} />
+            <TaskSection title="Heute" notes={categorizedNotes.heute} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+            <TaskSection title="Morgen" notes={categorizedNotes.morgen} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+            <TaskSection title="Diese Woche" notes={categorizedNotes.dieseWoche} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+            <TaskSection title="Dieser Monat" notes={categorizedNotes.dieserMonat} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+            <TaskSection title="Alle" notes={categorizedNotes.alle} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} />
+            <TaskSection title="Done" notes={categorizedNotes.erledigt} onNoteClick={handleNoteClick} onToggleComplete={handleToggleComplete} defaultCollapsed={true} />
           </div>
           <div className="w-64 flex-shrink-0">
             <div className="rounded-lg border border-gray-200 p-4">

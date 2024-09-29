@@ -22,7 +22,7 @@ export const NoteProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [notes, setNotes] = useState<Note[]>([]);
 
   const addNote = (note: Omit<Note, 'id'>) => {
-    const newNote = { ...note, id: Date.now().toString() };
+    const newNote = { ...note, id: Date.now().toString(), completed: false };
     setNotes(prevNotes => [...prevNotes, newNote]);
   };
 
