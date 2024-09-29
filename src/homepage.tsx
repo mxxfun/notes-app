@@ -1,6 +1,7 @@
 import './index.postcss'
 import { PlusIcon } from "lucide-react"
 import { useState, useEffect } from 'react'
+import NoteContextMenu from './note-context-menu'
 
 const TaskItem = ({ task }) => (
   <li className="mb-2">
@@ -29,6 +30,7 @@ const TaskSection = ({ title, tasks }) => (
 
 export default function Homepage() {
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const tasks = {
     heute: ["Projekt-Präsentation vorbereiten", "E-Mails beantworten"],
     morgen: ["Team-Meeting", "Bericht fertigstellen"],
@@ -58,20 +60,19 @@ export default function Homepage() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-8">
+    <div className="min-h-screen bg-white p-8 relative">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Notizen App</h1>
         </header>
         <div className="flex gap-8">
           <div className="flex-grow">
-            <div className="mb-6 flex items-center rounded-full border border-gray-300 px-4 py-2">
+            <div 
+              className="mb-6 flex items-center rounded-full border border-gray-300 px-4 py-2 cursor-pointer"
+              onClick={() => setIsModalOpen(true)}
+            >
               <PlusIcon className="mr-2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Aufgabe hinzufügen"
-                className="w-full bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none"
-              />
+              <span className="text-gray-700">Neue Notiz</span>
             </div>
             <TaskSection title="Heute" tasks={tasks.heute} />
             <TaskSection title="Morgen" tasks={tasks.morgen} />
@@ -106,6 +107,13 @@ export default function Homepage() {
           </div>
         </div>
       </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg">
+            <NoteContextMenu onClose={() => setIsModalOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

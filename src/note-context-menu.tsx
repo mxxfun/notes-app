@@ -7,13 +7,24 @@ import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { PrioritySlider } from "@/components/priority-slider"
+import { X } from "lucide-react"
 
-export default function NoteContextMenu() {
+interface NoteContextMenuProps {
+  onClose: () => void;
+}
+
+export default function NoteContextMenu({ onClose }: NoteContextMenuProps) {
   const [deadline, setDeadline] = useState("heute")
   const [date, setDate] = useState<Date | undefined>(new Date())
 
   return (
-    <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+    <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg relative">
+      <button 
+        onClick={onClose}
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+      >
+        <X size={24} />
+      </button>
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Neue Notiz</h2>
       <div className="space-y-6">
         <div className="space-y-2">
@@ -72,6 +83,7 @@ export default function NoteContextMenu() {
             "w-full bg-white text-black border border-black transition-colors duration-300",
             "hover:bg-black hover:text-white"
           )}
+          onClick={onClose}
         >
           Speichern
         </Button>
