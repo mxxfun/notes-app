@@ -14,25 +14,26 @@ export default function NoteContextMenu() {
 
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="title">Titel</Label>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Neue Notiz</h2>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="title" className="block mb-1">Titel</Label>
           <Input id="title" placeholder="Titel eingeben" />
         </div>
 
-        <div>
-          <Label htmlFor="note">Notiz</Label>
+        <div className="space-y-2">
+          <Label htmlFor="note" className="block mb-1">Notiz</Label>
           <Textarea id="note" placeholder="Notiz eingeben" className="h-24" />
         </div>
 
-        <div>
-          <Label>Wichtigkeit</Label>
+        <div className="space-y-2">
+          <Label className="block mb-2">Wichtigkeit</Label>
           <PrioritySlider />
         </div>
 
-        <div>
-          <Label>Deadline</Label>
-          <RadioGroup value={deadline} onValueChange={setDeadline} className="flex flex-wrap gap-4 mt-2">
+        <div className="space-y-2">
+          <Label className="block mb-2">Deadline</Label>
+          <RadioGroup value={deadline} onValueChange={setDeadline} className="flex flex-wrap gap-4">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="heute" id="heute" />
               <Label htmlFor="heute">Heute</Label>
