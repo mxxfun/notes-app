@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { PrioritySlider } from "@/components/priority-slider";
 import { X } from "lucide-react";
 import { useNotes } from "./NoteContext";
+import { CustomCheckbox } from "@/components/custom-checkbox";
 
 interface Note {
   id: string;
@@ -182,14 +183,12 @@ export default function NoteContextMenu({
         </div>
 
         <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="completed"
+          <CustomCheckbox
             checked={completed}
-            onChange={(e) => setCompleted(e.target.checked)}
-            className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+            onChange={setCompleted}
+            id="noteCompleted"
           />
-          <Label htmlFor="completed">Erledigt</Label>
+          <Label htmlFor="noteCompleted" className="cursor-pointer">Erledigt</Label>
         </div>
 
         <Button

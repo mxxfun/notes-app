@@ -3,6 +3,7 @@ import { PlusIcon, ChevronRight, ChevronDown } from "lucide-react"
 import { useState, useEffect } from 'react'
 import NoteContextMenu from './note-context-menu'
 import { useNotes } from './NoteContext'
+import { CustomCheckbox } from '@/components/custom-checkbox'
 
 interface Note {
   id: string;
@@ -19,17 +20,14 @@ const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteC
       className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group cursor-pointer"
       onClick={() => onNoteClick(note)}
     >
-      <div className="flex-shrink-0 w-5 h-5 mr-3" onClick={(e) => e.stopPropagation()}>
-        <input 
-          type="checkbox" 
+      <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
+        <CustomCheckbox
           checked={note.completed}
-          className="w-5 h-5 rounded-full border-2 border-gray-300 text-orange-500 focus:ring-orange-500 focus:ring-offset-0 transition-colors duration-300 group-hover:border-white"
-          onChange={(e) => {
-            onToggleComplete(note.id, e.target.checked);
-          }}
+          onChange={(checked) => onToggleComplete(note.id, checked)}
+          id={`task-${note.id}`}
         />
       </div>
-      <span className="text-gray-700 group-hover:text-white transition-colors duration-300">{note.title}</span>
+      <span className={`text-gray-700 group-hover:text-white transition-colors duration-300 ${note.completed ? 'line-through' : ''}`}>{note.title}</span>
       <span className="ml-auto text-sm text-gray-500 group-hover:text-white">{note.priority}</span>
     </div>
   </li>
