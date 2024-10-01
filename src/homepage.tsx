@@ -14,24 +14,33 @@ interface Note {
   completed: boolean;
 }
 
-const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void }) => (
-  <li className="mb-2">
-    <div 
-      className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group cursor-pointer"
-      onClick={() => onNoteClick(note)}
-    >
-      <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
-        <CustomCheckbox
-          checked={note.completed}
-          onChange={(checked) => onToggleComplete(note.id, checked)}
-          id={`task-${note.id}`}
-        />
+const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void }) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+
+  return (
+    <li className="mb-2">
+      <div 
+        className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group cursor-pointer"
+        onClick={() => onNoteClick(note)}
+      >
+        <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
+          <CustomCheckbox
+            checked={note.completed}
+            onChange={(checked) => onToggleComplete(note.id, checked)}
+            id={`task-${note.id}`}
+          />
+        </div>
+        <span className={`text-gray-700 group-hover:text-white transition-colors duration-300 flex-grow ${note.completed ? 'line-through' : ''}`}>{note.title}</span>
+        <span className="ml-auto text-sm text-gray-500 group-hover:text-white">
+          {formatDate(note.deadline)} | {note.priority}
+        </span>
       </div>
-      <span className={`text-gray-700 group-hover:text-white transition-colors duration-300 ${note.completed ? 'line-through' : ''}`}>{note.title}</span>
-      <span className="ml-auto text-sm text-gray-500 group-hover:text-white">{note.priority}</span>
-    </div>
-  </li>
-)
+    </li>
+  )
+}
 
 const TaskSection = ({ title, notes, onNoteClick, onToggleComplete, defaultCollapsed = true }: { title: string; notes: Note[]; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void; defaultCollapsed?: boolean }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
