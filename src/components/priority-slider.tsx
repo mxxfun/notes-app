@@ -23,17 +23,20 @@ const Slider = React.forwardRef<
 
 Slider.displayName = SliderPrimitive.Root.displayName
 
-export function PrioritySlider() {
-  const [priority, setPriority] = React.useState(50)
+interface PrioritySliderProps {
+  value: number;
+  onChange: (value: number) => void;
+}
 
-  const handlePriorityChange = React.useCallback((value: number[]) => {
-    setPriority(value[0])
-  }, [])
+export function PrioritySlider({ value, onChange }: PrioritySliderProps) {
+  const handlePriorityChange = React.useCallback((newValue: number[]) => {
+    onChange(newValue[0]);
+  }, [onChange]);
 
   return (
     <div className="w-full max-w-sm space-y-4">
       <Slider
-        value={[priority]}
+        value={[value]}
         onValueChange={handlePriorityChange}
         max={100}
         step={1}
@@ -44,7 +47,7 @@ export function PrioritySlider() {
         <span>High Priority</span>
       </div>
       <div className="text-center text-lg font-semibold">
-        Priority: {priority}
+        Priority: {value}
       </div>
     </div>
   )
