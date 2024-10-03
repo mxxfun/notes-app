@@ -24,7 +24,7 @@ const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteC
   return (
     <li className="mb-2">
       <div 
-        className="flex items-center rounded-lg border border-gray-300 px-3 py-2 transition-all duration-300 hover:bg-orange-50 cursor-pointer"
+        className="flex items-center justify-between w-full rounded-lg border border-gray-300 px-3 py-2 transition-all duration-300 hover:bg-orange-50 cursor-pointer"
         onClick={() => onNoteClick(note)}
       >
         <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
@@ -250,11 +250,11 @@ export default function Homepage() {
         </div>
       </div>
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg">
-            <NoteContextMenu onClose={handleCloseModal} initialNote={selectedNote} />
-          </div>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-y-auto">
+        <div className="bg-white rounded-lg shadow-lg m-4">
+          <NoteContextMenu onClose={handleCloseModal} initialNote={selectedNote} />
         </div>
+      </div>
       )}
     </div>
   )
