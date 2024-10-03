@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import NoteContextMenu from './note-context-menu'
 import { useNotes } from './NoteContext'
 import { CustomCheckbox } from '@/components/custom-checkbox'
+import { PriorityStatusComponent } from '@/components/priority-status'
 
 interface Note {
   id: string;
@@ -17,13 +18,13 @@ interface Note {
 const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
   return (
     <li className="mb-2">
       <div 
-        className="flex items-center rounded-lg border border-gray-300 px-4 py-2 transition-all duration-300 hover:bg-orange-500 group cursor-pointer"
+        className="flex items-center rounded-lg border border-gray-300 px-3 py-2 transition-all duration-300 hover:bg-orange-50 cursor-pointer"
         onClick={() => onNoteClick(note)}
       >
         <div className="flex-shrink-0 mr-3" onClick={(e) => e.stopPropagation()}>
@@ -33,15 +34,17 @@ const TaskItem = ({ note, onNoteClick, onToggleComplete }: { note: Note; onNoteC
             id={`task-${note.id}`}
           />
         </div>
-        <span className={`text-gray-700 group-hover:text-white transition-colors duration-300 flex-grow ${note.completed ? 'line-through' : ''}`}>{note.title}</span>
-        <span className="ml-auto text-sm text-gray-500 group-hover:text-white">
-          {formatDate(note.deadline)} | {note.priority}
-        </span>
+        <span className={`text-gray-700 transition-colors duration-300 flex-grow ${note.completed ? 'line-through text-gray-400' : ''}`}>{note.title}</span>
+        <div className="flex items-center space-x-2 ml-2">
+          <span className="text-sm text-gray-500">{formatDate(note.deadline)}</span>
+          <div className="flex-shrink-0 w-8 h-8">
+            <PriorityStatusComponent priority={note.priority} />
+          </div>
+        </div>
       </div>
     </li>
   )
 }
-
 const TaskSection = ({ title, notes, onNoteClick, onToggleComplete, defaultCollapsed = true }: { title: string; notes: Note[]; onNoteClick: (note: Note) => void; onToggleComplete: (id: string, completed: boolean) => void; defaultCollapsed?: boolean }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
