@@ -51,6 +51,21 @@ export default function NoteContextMenu({
     }
   }, [initialNote]);
 
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Cleanup function
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [onClose]);
+
   const handleSubmit = () => {
     const noteData = {
       title,
