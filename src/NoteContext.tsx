@@ -1,4 +1,16 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  query, 
+  where, 
+  onSnapshot 
+} from 'firebase/firestore';
+import { db } from './firebase';
+import { auth } from './firebase';
 
 interface Note {
   id: string;
@@ -11,9 +23,9 @@ interface Note {
 
 interface NoteContextType {
   notes: Note[];
-  addNote: (note: Omit<Note, 'id'>) => void;
-  updateNote: (id: string, note: Partial<Note>) => void;
-  deleteNote: (id: string) => void;
+  addNote: (note: Omit<Note, 'id'>) => Promise<void>;
+  updateNote: (id: string, note: Partial<Note>) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
 }
 
 const NoteContext = createContext<NoteContextType | undefined>(undefined);
@@ -21,21 +33,52 @@ const NoteContext = createContext<NoteContextType | undefined>(undefined);
 export const NoteProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [notes, setNotes] = useState<Note[]>([]);
 
-  const addNote = (note: Omit<Note, 'id'>) => {
-    const newNote = { ...note, id: Date.now().toString(), completed: false };
-    setNotes(prevNotes => [...prevNotes, newNote]);
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      const q = query(collection(db, 'notes'), where('userId', '==', user.uid));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const notesData: Note[] = [];
+        querySnapshot.forEach((doc) => {
+          notesData.push({ id: doc.id, ...doc.data() } as Note);
+        });
+        setNotes(notesData);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [auth.currentUser]);
+
+  const addNote = async (note: Omit<Note, 'id'>) => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await addDoc(collection(db, 'notes'), { ...note, userId: user.uid });
+        console.log('Note added successfully');
+      } catch (error) {
+        console.error('Error adding note: ', error);
+      }
+    } else {
+      console.error('No user logged in');
+    }
   };
 
-  const updateNote = (id: string, updatedNote: Partial<Note>) => {
-    setNotes(prevNotes =>
-      prevNotes.map(note =>
-        note.id === id ? { ...note, ...updatedNote } : note
-      )
-    );
+  const updateNote = async (id: string, updatedNote: Partial<Note>) => {
+    try {
+      await updateDoc(doc(db, 'notes', id), updatedNote);
+      console.log('Note updated successfully');
+    } catch (error) {
+      console.error('Error updating note: ', error);
+    }
   };
 
-  const deleteNote = (id: string) => {
-    setNotes(prevNotes => prevNotes.filter(note => note.id !== id));
+  const deleteNote = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'notes', id));
+      console.log('Note deleted successfully');
+    } catch (error) {
+      console.error('Error deleting note: ', error);
+    }
   };
 
   return (
